@@ -1,0 +1,245 @@
+<!-- index.html: Main page for the Class Period Timer web app (Final Corrected Version) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Period Timer</title>
+    <!-- Tailwind CSS CDN for utility-first styling -->
+    <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+    <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
+    <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
+    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap)" rel="stylesheet">
+    <!-- PWA Manifest link -->
+    <link rel="manifest" href="/manifest.json">
+    <!-- Add apple-touch-icon for iOS home screen icon (Accessibility Fix) -->
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
+    <style>
+        /* Custom CSS for chalkboard background and Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Subtle chalkboard texture using CSS gradients */
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-color: #333; /* Dark background for chalkboard */
+            transition: background-color 0.3s ease; /* Smooth transition for theme change */
+        }
+
+        /* Dark mode specific styles */
+        body.dark {
+            background-color: #1a202c; /* Deeper dark background */
+            color: #e2e8f0; /* Light text for dark mode */
+        }
+
+        /* Light mode specific styles */
+        body.light {
+            background-color: #f7fafc; /* Light background */
+            color: #2d3748; /* Dark text for light mode */
+        }
+
+        /* Progress ring styling */
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        /* Modal animation classes */
+        .modal-enter-active, .modal-leave-active {
+            transition: all 0.3s ease-out;
+        }
+        .modal-enter-from, .modal-leave-to {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+
+        /* Toast notification styling */
+        #toastContainer {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            align-items: center;
+            max-width: 90%;
+            pointer-events: none; /* Allows clicks to pass through */
+        }
+        .toast {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            pointer-events: auto; /* Re-enables clicks for the toast itself */
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen items-center justify-center p-4">
+    <!-- Header section -->
+    <header class="w-full max-w-md text-center mb-8">
+        <h1 class="text-4xl font-bold text-blue-600 dark:text-blue-400">Class Period Timer</h1>
+    </header>
+
+    <!-- Period Indicator -->
+    <div id="periodIndicator" class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-4">
+        Period 1 of 1
+    </div>
+
+    <!-- Timer display section -->
+    <div class="relative flex items-center justify-center mb-12">
+        <!-- SVG for progress ring -->
+        <svg class="w-64 h-64 sm:w-80 sm:h-80" viewBox="0 0 120 120">
+            <circle
+                class="progress-ring__background text-gray-300 dark:text-gray-700"
+                stroke="currentColor"
+                stroke-width="8"
+                fill="transparent"
+                r="52"
+                cx="60"
+                cy="60"
+            />
+            <circle
+                id="progressRing"
+                class="progress-ring__circle text-blue-500 dark:text-blue-300"
+                stroke="currentColor"
+                stroke-width="8"
+                fill="transparent"
+                r="52"
+                cx="60"
+                cy="60"
+                stroke-dasharray="326.7 326.7" /* Circumference of a circle with radius 52 (2 * PI * 52) */
+                stroke-dashoffset="326.7"
+            />
+        </svg>
+        <div id="timerDisplay" class="absolute text-6xl sm:text-7xl font-mono font-bold text-gray-800 dark:text-gray-100">
+            00:00
+        </div>
+    </div>
+
+    <!-- Control buttons section -->
+    <div class="flex flex-wrap justify-center gap-4 mb-8 w-full max-w-lg">
+        <button id="startButton" class="px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-75">
+            Start
+        </button>
+        <button id="pauseButton" class="px-6 py-3 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:ring-opacity-75">
+            Pause
+        </button>
+        <button id="resetButton" class="px-6 py-3 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-opacity-75">
+            Reset
+        </button>
+    </div>
+
+    <!-- Settings and Dark/Light mode toggle -->
+    <div class="flex items-center justify-center gap-6 mb-8">
+        <!-- Settings Button -->
+        <!-- Accessibility Fix: Add aria-label for screen readers -->
+        <button id="settingsButton" class="p-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-full shadow-md transition-all duration-200 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75" aria-label="Settings">
+            <!-- Gear icon (SVG) -->
+            <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+                <path fill-rule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L9.05 4.889c-.83.147-1.49.65-1.925 1.385A9.007 9.007 0 005.082 9.565c-.41.2-.633.485-.744.736L3.102 12l1.236 1.7c.11.25.334.536.744.736a9.007 9.007 0 002.043 3.695c.435.735 1.095 1.238 1.925 1.385l.178.992c.151.904.933 1.567 1.85 1.567h1.844c.916 0 1.699-.663 1.85-1.567l.178-.992c.83-.147 1.49-.65 1.925-1.385a9.007 9.007 0 002.043-3.695c.41-.2.633-.485.744-.736l1.236-1.7-1.236-1.7c-.11-.25-.334-.536-.744-.736a9.007 9.007 0 00-2.043-3.695c-.435-.735-1.095-1.238-1.925-1.385l-.178-.992A1.825 1.825 0 0012.922 2.25h-1.844zm0 2.887a.75.75 0 100 1.5h.75a.75.75 0 000-1.5h-.75zM12 15.75a3.75 3.75 0 100-7.5 3.75 3.75 0 000 7.5z" clip-rule="evenodd" />
+            </svg>
+        </button>
+        <!-- Dark/Light mode toggle -->
+        <div class="flex items-center space-x-2">
+            <!-- Accessibility Fix: Explicitly link input to span labels -->
+            <span id="themeToggleLabelLight" class="text-gray-700 dark:text-gray-300">Light</span>
+            <label for="themeToggle" class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="themeToggle" class="sr-only peer" aria-labelledby="themeToggleLabelLight themeToggleLabelDark">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border after:border-gray-300 after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+            <span id="themeToggleLabelDark" class="text-gray-700 dark:text-gray-300">Dark</span>
+        </div>
+    </div>
+
+    <!-- Time Up Modal -->
+    <div id="timeUpModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50 modal-enter-from" aria-modal="true" role="dialog">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center transform scale-95 opacity-0 transition-all duration-300 ease-out" id="modalContent">
+            <h2 class="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-4">Time's Up!</h2>
+            <p class="text-lg text-gray-700 dark:text-gray-300 mb-6">Period has ended.</p>
+            <button id="closeModalButton" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                Dismiss
+            </button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 hidden z-50 modal-enter-from" aria-modal="true" role="dialog">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-md transform scale-95 opacity-0 transition-all duration-300 ease-out" id="settingsModalContent">
+            <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-6 text-center">Settings</h2>
+
+            <!-- Default Period Duration Input -->
+            <div class="mb-6">
+                <label for="defaultDurationInput" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+                    Default Single Period Duration (minutes):
+                </label>
+                <input type="number" id="defaultDurationInput" min="1" value="40"
+                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Used if no multi-period schedule is defined.</p>
+            </div>
+
+            <!-- Multi-Period Schedule Input -->
+            <div class="mb-6">
+                <label for="scheduleInput" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+                    Multi-Period Schedule (minutes, comma-separated, max 8 periods):
+                </label>
+                <input type="text" id="scheduleInput" placeholder="e.g., 40,40,30,30"
+                       class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:outline-none focus:shadow-outline dark:bg-gray-700 dark:border-gray-600">
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Enter durations for each period (e.g., 40,40,30). Leave empty for default single period.</p>
+            </div>
+
+            <!-- Bonus: Alert Options -->
+            <div class="mb-6">
+                <label for="vibrateAlertToggle" class="inline-flex items-center text-gray-700 dark:text-gray-300">
+                    <input type="checkbox" id="vibrateAlertToggle" class="form-checkbox h-5 w-5 text-blue-600 rounded">
+                    <span class="ml-2">Vibrate at end of period</span>
+                </label>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex justify-end gap-4">
+                <button id="cancelSettingsButton" class="px-6 py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
+                    Cancel
+                </button>
+                <button id="saveSettingsButton" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75">
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Audio element for the bell sound -->
+    <audio id="bellSound" src="/assets/bell.mp3" preload="auto"></audio>
+
+    <!-- Main application script -->
+    <script type="module" src="/src/script.js"></script>
+    <!-- Service worker registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
