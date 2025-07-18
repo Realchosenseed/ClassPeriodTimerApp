@@ -1,19 +1,23 @@
-<!-- index.html: Main page for the Class Period Timer web app (Final Corrected Version) -->
+<!-- index.html: Main page for the Class Period Timer web app (GitHub Pages Path Fix) -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Class Period Timer</title>
+    <!-- IMPORTANT FIX FOR GITHUB PAGES: Set base URL for relative paths -->
+    <!-- Replace 'ClassPeriodTimerApp' with your actual repository name if different -->
+    <base href="/ClassPeriodTimerApp/">
+
     <!-- Tailwind CSS CDN for utility-first styling -->
     <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
     <link rel="preconnect" href="[https://fonts.googleapis.com](https://fonts.googleapis.com)">
     <link rel="preconnect" href="[https://fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin>
     <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap)" rel="stylesheet">
     <!-- PWA Manifest link -->
-    <link rel="manifest" href="/manifest.json">
+    <link rel="manifest" href="manifest.json"> <!-- Changed to relative path -->
     <!-- Add apple-touch-icon for iOS home screen icon (Accessibility Fix) -->
-    <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png"> <!-- Changed to relative path -->
     <style>
         /* Custom CSS for chalkboard background and Inter font */
         body {
@@ -144,7 +148,6 @@
     <!-- Settings and Dark/Light mode toggle -->
     <div class="flex items-center justify-center gap-6 mb-8">
         <!-- Settings Button -->
-        <!-- Accessibility Fix: Add aria-label for screen readers -->
         <button id="settingsButton" class="p-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-100 rounded-full shadow-md transition-all duration-200 transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75" aria-label="Settings">
             <!-- Gear icon (SVG) -->
             <svg xmlns="[http://www.w3.org/2000/svg](http://www.w3.org/2000/svg)" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
@@ -153,7 +156,6 @@
         </button>
         <!-- Dark/Light mode toggle -->
         <div class="flex items-center space-x-2">
-            <!-- Accessibility Fix: Explicitly link input to span labels -->
             <span id="themeToggleLabelLight" class="text-gray-700 dark:text-gray-300">Light</span>
             <label for="themeToggle" class="relative inline-flex items-center cursor-pointer">
                 <input type="checkbox" id="themeToggle" class="sr-only peer" aria-labelledby="themeToggleLabelLight themeToggleLabelDark">
@@ -223,15 +225,19 @@
     <div id="toastContainer"></div>
 
     <!-- Audio element for the bell sound -->
-    <audio id="bellSound" src="/assets/bell.mp3" preload="auto"></audio>
+    <audio id="bellSound" src="assets/bell.mp3" preload="auto"></audio> <!-- Changed to relative path -->
 
     <!-- Main application script -->
-    <script type="module" src="/src/script.js"></script>
+    <script type="module" src="src/script.js"></script> <!-- Changed to relative path -->
     <!-- Service worker registration -->
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
+                // IMPORTANT: Service Worker path must be relative to the scope it controls.
+                // For GitHub Pages, if your app is in a subdirectory, the service worker
+                // should ideally be at the root of that subdirectory.
+                // The scope should also reflect the subdirectory.
+                navigator.serviceWorker.register('service-worker.js', { scope: './' }) // Changed path and scope
                     .then(registration => {
                         console.log('Service Worker registered with scope:', registration.scope);
                     })

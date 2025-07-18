@@ -1,23 +1,23 @@
-// service-worker.js: Service Worker for PWA capabilities (caching) (Final Corrected Version)
+// service-worker.js: Service Worker for PWA capabilities (caching) (GitHub Pages Path Fix)
 
-const CACHE_NAME = 'class-period-timer-v5'; // Increment cache version for this update
+const CACHE_NAME = 'class-period-timer-v6'; // Increment cache version for this update
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/src/script.js',
-    '/src/storage.js',
-    '/src/ui.js',
-    '/assets/bell.mp3',
-    '/manifest.json',
+    './', // Cache the root of the app (index.html)
+    'index.html',
+    'src/script.js',
+    'src/storage.js',
+    'src/ui.js',
+    'assets/bell.mp3',
+    'manifest.json',
     // PWA Icons (ensure these paths match your actual icon files)
-    '/assets/icons/icon-72x72.png',
-    '/assets/icons/icon-96x96.png',
-    '/assets/icons/icon-128x128.png',
-    '/assets/icons/icon-144x144.png',
-    '/assets/icons/icon-152x152.png',
-    '/assets/icons/icon-192x192.png',
-    '/assets/icons/icon-384x384.png',
-    '/assets/icons/icon-512x512.png'
+    'assets/icons/icon-72x72.png',
+    'assets/icons/icon-96x96.png',
+    'assets/icons/icon-128x128.png',
+    'assets/icons/icon-144x144.png',
+    'assets/icons/icon-152x152.png',
+    'assets/icons/icon-192x192.png',
+    'assets/icons/icon-384x384.png',
+    'assets/icons/icon-512x512.png'
 ];
 
 // Install event: Caches all static assets
@@ -27,6 +27,7 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAME)
             .then((cache) => {
                 console.log('Service Worker: Caching assets...');
+                // Ensure all asset paths are relative to the service worker's scope
                 return cache.addAll(ASSETS);
             })
             .catch((error) => {
